@@ -12,6 +12,7 @@ This repository supports the **Test** project in Cyntra Coding Workspace. It is 
 - recording bot test results
 - building small scripts or harnesses for repeatable testing
 - integrating LM Studio for local LLM testing
+- testing MCP servers through LM Studio
 
 ## Project Status
 
@@ -22,6 +23,7 @@ project: test
 workspace: Cyntra Coding Workspace
 related_workspace: AI Bot Development
 lmstudio_integration: active
+mcp_server_setup: active
 ```
 
 ## Repository Structure
@@ -32,17 +34,24 @@ requirements.txt
 docs/
   project-notes.md
   lmstudio-integration.md
+mcp/
+  README.md
+  lmstudio.mcp.example.json
+  mcp-policy.md
 bot-tests/
   behavior-tests.md
   prompt-tests.md
   training-notes.md
   lmstudio-smoke-test.md
+  mcp-server-smoke-test.md
 scripts/
   README.md
   lmstudio_list_models.py
   lmstudio_chat.py
   lmstudio_native_chat.py
   lmstudio_structured_character_test.py
+  lmstudio_mcp_ephemeral_huggingface.py
+  lmstudio_mcp_plugin_playwright.py
 data/
   README.md
 results/
@@ -86,24 +95,51 @@ Run a structured bot-evaluation test:
 python scripts/lmstudio_structured_character_test.py
 ```
 
+## MCP Server Quick Start
+
+Read the setup guide:
+
+```text
+mcp/README.md
+```
+
+Test an ephemeral remote MCP server:
+
+```bash
+python scripts/lmstudio_mcp_ephemeral_huggingface.py
+```
+
+Test a pre-configured Playwright MCP server from LM Studio's actual `mcp.json`:
+
+```bash
+python scripts/lmstudio_mcp_plugin_playwright.py "Open https://lmstudio.ai and summarize the page title or visible purpose."
+```
+
 ## Current Tasks
 
-- Define initial bot capability tests.
-- Add training notes for bot behavior.
-- Choose language stack if scripts expand beyond Python.
-- Register future files back into Wisebase.
 - Run LM Studio smoke tests locally.
+- Enable the needed MCP server settings in LM Studio.
+- Run the ephemeral Hugging Face MCP smoke test.
+- Add Playwright MCP to LM Studio's actual `mcp.json` if browser automation is needed.
+- Run the Playwright MCP smoke test.
+- Record outputs in `results/` or the bot-test files.
 
 ## Notes
 
 This repository is linked to Wisebase project file:
 
 ```text
-PROJECT__Coding__Test__Main-File__2026-06-19__v1.3
+PROJECT__Coding__Test__Main-File__2026-06-19__v1.4
 ```
 
 LM Studio integration guide:
 
 ```text
 docs/lmstudio-integration.md
+```
+
+MCP setup guide:
+
+```text
+mcp/README.md
 ```
