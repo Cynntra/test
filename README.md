@@ -1,6 +1,6 @@
 # Test
 
-Testing workspace for capability checks, AI bot testing, bot-training experiments, local LLM workflows, and LM Studio developer integrations.
+Testing workspace for capability checks, AI bot testing, bot-training experiments, local LLM workflows, LM Studio developer integrations, and a browser-running realtime machine page.
 
 ## Purpose
 
@@ -15,6 +15,7 @@ This repository supports the **Test** project in Cyntra Coding Workspace. It is 
 - testing MCP servers through LM Studio
 - managing local models through LM Studio REST and CLI flows
 - testing OpenAI-compatible, Anthropic-compatible, native REST, and Python SDK routes
+- running a browser-based realtime machine page while open
 
 ## Project Status
 
@@ -27,6 +28,7 @@ related_workspace: AI Bot Development
 lmstudio_integration: active
 mcp_server_setup: active
 lmstudio_function_harness: active
+realtime_machine_page: active
 ```
 
 ## Repository Structure
@@ -34,7 +36,14 @@ lmstudio_function_harness: active
 ```text
 .env.example
 requirements.txt
+.github/
+  workflows/
+    pages.yml
 docs/
+  index.html
+  realtime-machine.css
+  realtime-machine.js
+  realtime-machine.md
   project-notes.md
   lmstudio-integration.md
   lmstudio-function-map.md
@@ -74,6 +83,34 @@ results/
 archive/
   README.md
 ```
+
+## Realtime Machine Page
+
+The browser-running realtime machine lives at:
+
+```text
+docs/index.html
+```
+
+Guide:
+
+```text
+docs/realtime-machine.md
+```
+
+Local preview:
+
+```bash
+python -m http.server 8080 -d docs
+```
+
+Then open:
+
+```text
+http://localhost:8080
+```
+
+The page runs while open, stores state in browser `localStorage`, logs events, tracks ticks, manages a small bot-test queue, and can attempt a browser-side LM Studio `/v1/models` check.
 
 ## Setup
 
@@ -166,6 +203,8 @@ python scripts/lmstudio_mcp_plugin_playwright.py "Open https://lmstudio.ai and s
 
 ## Current Tasks
 
+- Enable GitHub Pages with the GitHub Actions source if not already enabled.
+- Run the realtime machine page locally or through GitHub Pages.
 - Run LM Studio smoke tests locally.
 - Choose and set `LMSTUDIO_MODEL` and `LMSTUDIO_EMBEDDING_MODEL`.
 - Run native REST model manager checks.
@@ -182,12 +221,13 @@ python scripts/lmstudio_mcp_plugin_playwright.py "Open https://lmstudio.ai and s
 This repository is linked to Wisebase project file:
 
 ```text
-PROJECT__Coding__Test__Main-File__2026-06-19__v1.5
+PROJECT__Coding__Test__Main-File__2026-06-19__v1.6
 ```
 
 Primary guides:
 
 ```text
+docs/realtime-machine.md
 docs/lmstudio-integration.md
 docs/lmstudio-function-map.md
 docs/lmstudio-cli-and-headless.md
