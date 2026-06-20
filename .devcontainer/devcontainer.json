@@ -1,0 +1,74 @@
+{
+  "name": "Cyntra Test Realtime Lab",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "upgradePackages": true
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
+        "charliermarsh.ruff",
+        "tamasfe.even-better-toml",
+        "redhat.vscode-yaml",
+        "bierner.markdown-mermaid",
+        "github.vscode-github-actions",
+        "github.copilot",
+        "github.copilot-chat"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "editor.formatOnSave": true,
+        "files.trimTrailingWhitespace": true,
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  },
+  "containerEnv": {
+    "CYNTRA_RUNTIME": "codespace",
+    "REALTIME_BACKEND_HOST": "0.0.0.0",
+    "REALTIME_BACKEND_PORT": "8787",
+    "REALTIME_BACKEND_URL": "http://127.0.0.1:8787",
+    "REALTIME_DASHBOARD_HOST": "0.0.0.0",
+    "REALTIME_DASHBOARD_PORT": "8080",
+    "LMSTUDIO_BASE_URL": "http://localhost:1234/v1",
+    "LMSTUDIO_API_BASE": "http://localhost:1234"
+  },
+  "forwardPorts": [
+    8080,
+    8787,
+    1234
+  ],
+  "portsAttributes": {
+    "8080": {
+      "label": "Realtime Dashboard",
+      "onAutoForward": "openPreview"
+    },
+    "8787": {
+      "label": "FastAPI Backend",
+      "onAutoForward": "notify"
+    },
+    "1234": {
+      "label": "LM Studio API Placeholder",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+  "remoteUser": "vscode",
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb",
+    "storage": "16gb"
+  }
+}
