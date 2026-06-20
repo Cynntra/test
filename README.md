@@ -1,6 +1,6 @@
 # Test
 
-Testing workspace for capability checks, AI bot testing, bot-training experiments, local LLM workflows, LM Studio developer integrations, and a browser-running realtime machine page.
+Testing workspace for capability checks, AI bot testing, bot-training experiments, local LLM workflows, LM Studio developer integrations, and a realtime machine powered by a local daemon plus backend API.
 
 ## Purpose
 
@@ -16,6 +16,7 @@ This repository supports the **Test** project in Cyntra Coding Workspace. It is 
 - managing local models through LM Studio REST and CLI flows
 - testing OpenAI-compatible, Anthropic-compatible, native REST, and Python SDK routes
 - running a browser-based realtime machine page while open
+- running a local daemon that reports LM Studio status into a backend API
 
 ## Project Status
 
@@ -29,6 +30,9 @@ lmstudio_integration: active
 mcp_server_setup: active
 lmstudio_function_harness: active
 realtime_machine_page: active
+local_daemon: active
+backend_api: active
+recommended_architecture: local-daemon-plus-backend
 ```
 
 ## Repository Structure
@@ -39,6 +43,16 @@ requirements.txt
 .github/
   workflows/
     pages.yml
+backend/
+  __init__.py
+  main.py
+  store.py
+  README.md
+daemon/
+  __init__.py
+  local_daemon.py
+  config.example.json
+  README.md
 docs/
   index.html
   realtime-machine.css
@@ -60,6 +74,7 @@ bot-tests/
   mcp-server-smoke-test.md
 scripts/
   README.md
+  run_realtime_stack.py
   lmstudio_list_models.py
   lmstudio_chat.py
   lmstudio_native_chat.py
@@ -84,21 +99,41 @@ archive/
   README.md
 ```
 
-## Realtime Machine Page
-
-The browser-running realtime machine lives at:
+## Recommended Realtime Architecture
 
 ```text
-docs/index.html
+LM Studio localhost -> Local Daemon -> FastAPI Backend -> Browser Dashboard
 ```
 
-Guide:
+### One-command local stack
+
+```bash
+python scripts/run_realtime_stack.py
+```
+
+This starts:
 
 ```text
-docs/realtime-machine.md
+backend:   http://127.0.0.1:8787
+dashboard: http://127.0.0.1:8080
+daemon:    local LM Studio watcher
 ```
 
-Local preview:
+### Manual startup
+
+Terminal 1:
+
+```bash
+uvicorn backend.main:app --host 127.0.0.1 --port 8787 --reload
+```
+
+Terminal 2:
+
+```bash
+python -m daemon.local_daemon
+```
+
+Terminal 3:
 
 ```bash
 python -m http.server 8080 -d docs
@@ -110,7 +145,27 @@ Then open:
 http://localhost:8080
 ```
 
-The page runs while open, stores state in browser `localStorage`, logs events, tracks ticks, manages a small bot-test queue, and can attempt a browser-side LM Studio `/v1/models` check.
+Backend API docs:
+
+```text
+http://127.0.0.1:8787/docs
+```
+
+## Realtime Machine Page
+
+The browser dashboard lives at:
+
+```text
+docs/index.html
+```
+
+Guide:
+
+```text
+docs/realtime-machine.md
+```
+
+The page runs while open, stores local state in browser `localStorage`, logs events, tracks ticks, manages a small bot-test queue, reads backend state from `/state`, and displays local daemon reports.
 
 ## Setup
 
@@ -203,9 +258,8 @@ python scripts/lmstudio_mcp_plugin_playwright.py "Open https://lmstudio.ai and s
 
 ## Current Tasks
 
-- Enable GitHub Pages with the GitHub Actions source if not already enabled.
-- Run the realtime machine page locally or through GitHub Pages.
-- Run LM Studio smoke tests locally.
+- Run `python scripts/run_realtime_stack.py` locally.
+- Start LM Studio and confirm `/v1/models` responds.
 - Choose and set `LMSTUDIO_MODEL` and `LMSTUDIO_EMBEDDING_MODEL`.
 - Run native REST model manager checks.
 - Run stateful and streaming chat checks.
@@ -215,18 +269,21 @@ python scripts/lmstudio_mcp_plugin_playwright.py "Open https://lmstudio.ai and s
 - Add Playwright MCP to LM Studio's actual `mcp.json` if browser automation is needed.
 - Run the Playwright MCP smoke test.
 - Record outputs in `results/` or the bot-test files.
+- Decide later whether to deploy the backend to a host.
 
 ## Notes
 
 This repository is linked to Wisebase project file:
 
 ```text
-PROJECT__Coding__Test__Main-File__2026-06-19__v1.6
+PROJECT__Coding__Test__Main-File__2026-06-19__v1.7
 ```
 
 Primary guides:
 
 ```text
+backend/README.md
+daemon/README.md
 docs/realtime-machine.md
 docs/lmstudio-integration.md
 docs/lmstudio-function-map.md
