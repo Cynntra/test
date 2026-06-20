@@ -18,6 +18,7 @@ This repository supports the **Test** project in Cyntra Coding Workspace. It is 
 - running a browser-based realtime machine page while open
 - running a local daemon that reports LM Studio status into a backend API
 - running an infinite keepalive supervisor for backend, daemon, and dashboard processes
+- developing in GitHub Codespaces with a prebuilt devcontainer workflow
 
 ## Project Status
 
@@ -34,6 +35,8 @@ realtime_machine_page: active
 local_daemon: active
 backend_api: active
 infinite_runtime_supervisor: active
+codespaces_environment: active
+github_environment_bootstrap: active
 recommended_architecture: local-daemon-plus-backend
 ```
 
@@ -42,9 +45,21 @@ recommended_architecture: local-daemon-plus-backend
 ```text
 .env.example
 requirements.txt
+.devcontainer/
+  devcontainer.json
+  setup.sh
+  post-start.sh
+  README.md
+.vscode/
+  tasks.json
+  settings.json
+  extensions.json
 .github/
+  copilot-instructions.md
   workflows/
     pages.yml
+    codespace-ci.yml
+    environment-bootstrap.yml
 backend/
   __init__.py
   main.py
@@ -61,6 +76,7 @@ docs/
   realtime-machine.js
   realtime-machine.md
   infinite-runtime.md
+  github-codespaces.md
   project-notes.md
   lmstudio-integration.md
   lmstudio-function-map.md
@@ -109,6 +125,63 @@ results/
 archive/
   README.md
 ```
+
+## GitHub Codespaces
+
+Codespaces setup guide:
+
+```text
+docs/github-codespaces.md
+```
+
+Devcontainer files:
+
+```text
+.devcontainer/devcontainer.json
+.devcontainer/setup.sh
+.devcontainer/post-start.sh
+```
+
+When a codespace is created, it installs dependencies, prepares `.env`, forwards project ports, and adds VS Code tasks.
+
+Forwarded ports:
+
+```text
+8080 Realtime Dashboard
+8787 FastAPI Backend
+1234 LM Studio API Placeholder
+```
+
+Run from Codespaces:
+
+```bash
+python scripts/run_realtime_stack.py
+```
+
+or supervised mode:
+
+```bash
+python scripts/keepalive_realtime_stack.py
+```
+
+Important: Codespaces runs in the cloud. LM Studio usually runs on your physical machine, so real LM Studio localhost checks should run through the local daemon on that machine unless you deliberately expose a reachable API endpoint.
+
+## GitHub Environments
+
+Bootstrap workflow:
+
+```text
+.github/workflows/environment-bootstrap.yml
+```
+
+Run it manually from the Actions tab to reference these environments:
+
+```text
+codespace-dev
+realtime-local
+```
+
+GitHub can create an environment when a workflow references an environment that does not yet exist. After bootstrap, configure secrets and variables in repository Settings -> Environments.
 
 ## Recommended Realtime Architecture
 
@@ -295,31 +368,27 @@ python scripts/lmstudio_mcp_plugin_playwright.py "Open https://lmstudio.ai and s
 
 ## Current Tasks
 
-- Run `python scripts/keepalive_realtime_stack.py` locally.
+- Create a GitHub Codespace from the repository.
+- Run `python scripts/run_realtime_stack.py` in Codespaces to test backend/dashboard.
+- Run the `Environment Bootstrap` workflow manually from Actions.
+- Configure repository Settings -> Environments for `codespace-dev` and `realtime-local`.
+- Run `python scripts/keepalive_realtime_stack.py` locally for real LM Studio daemon work.
 - Install the correct boot-service template for the host OS if true always-on startup is needed.
 - Start LM Studio and confirm `/v1/models` responds.
-- Choose and set `LMSTUDIO_MODEL` and `LMSTUDIO_EMBEDDING_MODEL`.
-- Run native REST model manager checks.
-- Run stateful and streaming chat checks.
-- Run embedding and responses checks.
-- Enable the needed MCP server settings in LM Studio.
-- Run the ephemeral Hugging Face MCP smoke test.
-- Add Playwright MCP to LM Studio's actual `mcp.json` if browser automation is needed.
-- Run the Playwright MCP smoke test.
 - Record outputs in `results/` or the bot-test files.
-- Decide later whether to deploy the backend to a host.
 
 ## Notes
 
 This repository is linked to Wisebase project file:
 
 ```text
-PROJECT__Coding__Test__Main-File__2026-06-19__v1.8
+PROJECT__Coding__Test__Main-File__2026-06-19__v1.9
 ```
 
 Primary guides:
 
 ```text
+docs/github-codespaces.md
 docs/infinite-runtime.md
 backend/README.md
 daemon/README.md
