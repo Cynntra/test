@@ -1,0 +1,28 @@
+name: Environment Bootstrap
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  codespace-dev:
+    name: Bootstrap codespace-dev environment
+    runs-on: ubuntu-latest
+    environment: codespace-dev
+    steps:
+      - name: Confirm environment
+        run: |
+          echo "codespace-dev environment referenced."
+          echo "Configure secrets and variables in repository Settings -> Environments -> codespace-dev."
+
+  realtime-local:
+    name: Bootstrap realtime-local environment
+    runs-on: ubuntu-latest
+    environment: realtime-local
+    steps:
+      - name: Confirm environment
+        run: |
+          echo "realtime-local environment referenced."
+          echo "Configure secrets and variables in repository Settings -> Environments -> realtime-local."
