@@ -1,6 +1,17 @@
 # Scripts
 
-Capability test scripts, bot evaluation helpers, repeatable test harness files, and LM Studio developer integrations live here.
+Capability test scripts, bot evaluation helpers, repeatable test harness files, LM Studio developer integrations, and realtime runtime supervisors live here.
+
+## Realtime Runtime
+
+```bash
+python scripts/run_realtime_stack.py
+python scripts/keepalive_realtime_stack.py
+```
+
+Use `run_realtime_stack.py` for a normal local session.
+
+Use `keepalive_realtime_stack.py` for infinite runtime mode. It restarts backend, daemon, or dashboard processes if they exit.
 
 ## Core
 
