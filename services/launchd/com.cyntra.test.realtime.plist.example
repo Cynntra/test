@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.cyntra.test.realtime</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/ABSOLUTE/PATH/TO/Cynntra/test/.venv/bin/python</string>
+    <string>/ABSOLUTE/PATH/TO/Cynntra/test/scripts/keepalive_realtime_stack.py</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/ABSOLUTE/PATH/TO/Cynntra/test</string>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/cyntra-test-realtime.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/cyntra-test-realtime.err.log</string>
+</dict>
+</plist>
