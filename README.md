@@ -17,6 +17,7 @@ This repository supports the **Test** project in Cyntra Coding Workspace. It is 
 - testing OpenAI-compatible, Anthropic-compatible, native REST, and Python SDK routes
 - running a browser-based realtime machine page while open
 - running a local daemon that reports LM Studio status into a backend API
+- running an infinite keepalive supervisor for backend, daemon, and dashboard processes
 
 ## Project Status
 
@@ -32,6 +33,7 @@ lmstudio_function_harness: active
 realtime_machine_page: active
 local_daemon: active
 backend_api: active
+infinite_runtime_supervisor: active
 recommended_architecture: local-daemon-plus-backend
 ```
 
@@ -58,10 +60,18 @@ docs/
   realtime-machine.css
   realtime-machine.js
   realtime-machine.md
+  infinite-runtime.md
   project-notes.md
   lmstudio-integration.md
   lmstudio-function-map.md
   lmstudio-cli-and-headless.md
+services/
+  systemd/
+    cyntra-test-realtime.service.example
+  launchd/
+    com.cyntra.test.realtime.plist.example
+  windows/
+    CyntraTestRealtimeTask.xml.example
 mcp/
   README.md
   lmstudio.mcp.example.json
@@ -75,6 +85,7 @@ bot-tests/
 scripts/
   README.md
   run_realtime_stack.py
+  keepalive_realtime_stack.py
   lmstudio_list_models.py
   lmstudio_chat.py
   lmstudio_native_chat.py
@@ -105,7 +116,33 @@ archive/
 LM Studio localhost -> Local Daemon -> FastAPI Backend -> Browser Dashboard
 ```
 
-### One-command local stack
+## Infinite Runtime Mode
+
+Run the supervised stack:
+
+```bash
+python scripts/keepalive_realtime_stack.py
+```
+
+This keeps the backend, daemon, and dashboard alive while the host machine is on. If any child process exits, the supervisor restarts it.
+
+Guide:
+
+```text
+docs/infinite-runtime.md
+```
+
+Boot-service templates:
+
+```text
+services/systemd/cyntra-test-realtime.service.example
+services/launchd/com.cyntra.test.realtime.plist.example
+services/windows/CyntraTestRealtimeTask.xml.example
+```
+
+## One-command local stack
+
+For a non-supervised local run:
 
 ```bash
 python scripts/run_realtime_stack.py
@@ -119,7 +156,7 @@ dashboard: http://127.0.0.1:8080
 daemon:    local LM Studio watcher
 ```
 
-### Manual startup
+## Manual startup
 
 Terminal 1:
 
@@ -258,7 +295,8 @@ python scripts/lmstudio_mcp_plugin_playwright.py "Open https://lmstudio.ai and s
 
 ## Current Tasks
 
-- Run `python scripts/run_realtime_stack.py` locally.
+- Run `python scripts/keepalive_realtime_stack.py` locally.
+- Install the correct boot-service template for the host OS if true always-on startup is needed.
 - Start LM Studio and confirm `/v1/models` responds.
 - Choose and set `LMSTUDIO_MODEL` and `LMSTUDIO_EMBEDDING_MODEL`.
 - Run native REST model manager checks.
@@ -276,12 +314,13 @@ python scripts/lmstudio_mcp_plugin_playwright.py "Open https://lmstudio.ai and s
 This repository is linked to Wisebase project file:
 
 ```text
-PROJECT__Coding__Test__Main-File__2026-06-19__v1.7
+PROJECT__Coding__Test__Main-File__2026-06-19__v1.8
 ```
 
 Primary guides:
 
 ```text
+docs/infinite-runtime.md
 backend/README.md
 daemon/README.md
 docs/realtime-machine.md
