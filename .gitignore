@@ -138,6 +138,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# Runtime state
+.runtime/
+
 # Test outputs
 results/*.json
 results/*.jsonl
