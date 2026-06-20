@@ -1,4 +1,4 @@
-const STORAGE_KEY = "cyntra-test-realtime-machine-v1";
+const STORAGE_KEY = "cyntra-test-realtime-machine-v2";
 
 const defaultState = {
   status: "idle",
@@ -9,6 +9,9 @@ const defaultState = {
   lastTickAt: null,
   lmStudioBase: "http://localhost:1234",
   lmStudioStatus: "unknown",
+  backendUrl: "http://127.0.0.1:8787",
+  backendStatus: "local",
+  backendState: null,
   queue: [
     { id: crypto.randomUUID(), label: "Run LM Studio model list check", createdAt: new Date().toISOString(), status: "queued" },
     { id: crypto.randomUUID(), label: "Run bot behavior smoke test", createdAt: new Date().toISOString(), status: "queued" },
@@ -28,10 +31,13 @@ const el = {
   tickCount: document.querySelector("#tickCount"),
   uptime: document.querySelector("#uptime"),
   heartbeat: document.querySelector("#heartbeat"),
+  backendStatus: document.querySelector("#backendStatus"),
   lmStudioStatus: document.querySelector("#lmStudioStatus"),
   tickInterval: document.querySelector("#tickInterval"),
   machineMode: document.querySelector("#machineMode"),
   lmStudioBase: document.querySelector("#lmStudioBase"),
+  backendUrl: document.querySelector("#backendUrl"),
+  backendSnapshot: document.querySelector("#backendSnapshot"),
   snapshot: document.querySelector("#snapshot"),
   eventLog: document.querySelector("#eventLog"),
   workQueue: document.querySelector("#workQueue"),
@@ -40,6 +46,7 @@ const el = {
   tickButton: document.querySelector("#tickButton"),
   resetButton: document.querySelector("#resetButton"),
   pingLmStudio: document.querySelector("#pingLmStudio"),
+  syncBackend: document.querySelector("#syncBackend"),
   copySnapshot: document.querySelector("#copySnapshot"),
   downloadSnapshot: document.querySelector("#downloadSnapshot"),
   addQueueItem: document.querySelector("#addQueueItem"),
@@ -50,9 +57,7 @@ const el = {
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (saved && typeof saved === "object") {
-      return { ...defaultState, ...saved, status: "idle" };
-    }
+    if (saved && typeof saved === "object") return { ...defaultState, ...saved, status: "idle" };
   } catch (error) {
     console.warn("State load failed", error);
   }
@@ -64,13 +69,7 @@ function saveState() {
 }
 
 function logEvent(message, type = "info", detail = null) {
-  machine.events.unshift({
-    id: crypto.randomUUID(),
-    time: new Date().toISOString(),
-    type,
-    message,
-    detail
-  });
+  machine.events.unshift({ id: crypto.randomUUID(), time: new Date().toISOString(), type, message, detail });
   machine.events = machine.events.slice(0, 80);
   saveState();
   render();
@@ -96,6 +95,10 @@ function buildSnapshot() {
     lastTickAt: machine.lastTickAt,
     lmStudioBase: machine.lmStudioBase,
     lmStudioStatus: machine.lmStudioStatus,
+    backendUrl: machine.backendUrl,
+    backendStatus: machine.backendStatus,
+    backendTickCount: machine.backendState?.tick_count ?? null,
+    backendLastDaemonReportAt: machine.backendState?.last_daemon_report_at ?? null,
     queueOpen: machine.queue.filter((item) => item.status !== "done").length,
     eventCount: machine.events.length,
     generatedAt: new Date().toISOString()
@@ -110,11 +113,14 @@ function render() {
   el.tickCount.textContent = String(machine.tickCount);
   el.heartbeat.textContent = machine.lastTickAt ? new Date(machine.lastTickAt).toLocaleTimeString() : "silent";
   el.uptime.textContent = machine.startedAt ? formatDuration(Date.now() - new Date(machine.startedAt).getTime()) : formatDuration(Date.now() - bootTime);
+  el.backendStatus.textContent = machine.backendStatus;
   el.lmStudioStatus.textContent = machine.lmStudioStatus;
   el.tickInterval.value = String(machine.tickIntervalMs);
   el.machineMode.value = machine.mode;
   el.lmStudioBase.value = machine.lmStudioBase;
+  el.backendUrl.value = machine.backendUrl;
   el.snapshot.textContent = JSON.stringify(snapshot, null, 2);
+  el.backendSnapshot.textContent = machine.backendState ? JSON.stringify(machine.backendState, null, 2) : "No backend state loaded yet.";
 
   el.workQueue.innerHTML = machine.queue.map((item) => `
     <li>
@@ -171,15 +177,9 @@ function resetMachine() {
 function tickMachine() {
   machine.tickCount += 1;
   machine.lastTickAt = new Date().toISOString();
-
-  if (machine.tickCount % 15 === 0) {
-    logEvent(`Major checkpoint reached at tick ${machine.tickCount}`, "checkpoint");
-  } else if (machine.tickCount % 5 === 0) {
-    logEvent(`Minor checkpoint reached at tick ${machine.tickCount}`, "checkpoint");
-  } else {
-    logEvent(`Tick ${machine.tickCount}`, "tick");
-  }
-
+  if (machine.tickCount % 15 === 0) logEvent(`Major checkpoint reached at tick ${machine.tickCount}`, "checkpoint");
+  else if (machine.tickCount % 5 === 0) logEvent(`Minor checkpoint reached at tick ${machine.tickCount}`, "checkpoint");
+  else logEvent(`Tick ${machine.tickCount}`, "tick");
   saveState();
   render();
 }
@@ -188,7 +188,6 @@ async function pingLmStudioModels() {
   const base = machine.lmStudioBase.replace(/\/$/, "");
   machine.lmStudioStatus = "checking";
   render();
-
   try {
     const response = await fetch(`${base}/v1/models`, { method: "GET" });
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
@@ -200,7 +199,27 @@ async function pingLmStudioModels() {
     machine.lmStudioStatus = "blocked/offline";
     logEvent(`LM Studio check failed: ${error.message}`, "error");
   }
+  saveState();
+  render();
+}
 
+async function syncFromBackend() {
+  const base = machine.backendUrl.replace(/\/$/, "");
+  machine.backendStatus = "checking";
+  render();
+  try {
+    const response = await fetch(`${base}/state`, { method: "GET" });
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    const payload = await response.json();
+    machine.backendState = payload;
+    machine.backendStatus = "online";
+    if (payload.lmstudio?.status) machine.lmStudioStatus = payload.lmstudio.status;
+    if (typeof payload.tick_count === "number") machine.tickCount = Math.max(machine.tickCount, payload.tick_count);
+    logEvent("Backend state synced", "backend", { tick_count: payload.tick_count, lmstudio: payload.lmstudio?.status });
+  } catch (error) {
+    machine.backendStatus = "offline";
+    logEvent(`Backend sync failed: ${error.message}`, "error");
+  }
   saveState();
   render();
 }
@@ -244,6 +263,7 @@ el.pauseButton.addEventListener("click", pauseMachine);
 el.tickButton.addEventListener("click", tickMachine);
 el.resetButton.addEventListener("click", resetMachine);
 el.pingLmStudio.addEventListener("click", pingLmStudioModels);
+el.syncBackend.addEventListener("click", syncFromBackend);
 el.copySnapshot.addEventListener("click", copySnapshot);
 el.downloadSnapshot.addEventListener("click", downloadSnapshot);
 el.addQueueItem.addEventListener("click", addQueueItem);
@@ -270,6 +290,14 @@ el.lmStudioBase.addEventListener("change", (event) => {
   logEvent(`LM Studio base set to ${machine.lmStudioBase}`, "settings");
 });
 
+el.backendUrl.addEventListener("change", (event) => {
+  machine.backendUrl = event.target.value.trim() || "http://127.0.0.1:8787";
+  logEvent(`Backend URL set to ${machine.backendUrl}`, "settings");
+});
+
 setInterval(render, 1000);
+setInterval(() => {
+  if (machine.status === "running") syncFromBackend();
+}, 30000);
 render();
 logEvent("Realtime machine page loaded", "state");
