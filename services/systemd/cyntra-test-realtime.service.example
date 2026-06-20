@@ -1,0 +1,17 @@
+[Unit]
+Description=Cyntra Test Realtime Machine
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/ABSOLUTE/PATH/TO/Cynntra/test
+EnvironmentFile=/ABSOLUTE/PATH/TO/Cynntra/test/.env
+ExecStart=/ABSOLUTE/PATH/TO/Cynntra/test/.venv/bin/python scripts/keepalive_realtime_stack.py
+Restart=always
+RestartSec=10
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
