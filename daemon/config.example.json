@@ -1,0 +1,9 @@
+{
+  "daemon_id": "cyntra-local-daemon",
+  "mode": "lmstudio-watch",
+  "tick_seconds": 15,
+  "backend_url": "http://127.0.0.1:8787",
+  "lmstudio_base_url": "http://localhost:1234/v1",
+  "run_smoke_tests": false,
+  "notes": "The current daemon reads environment variables first. This file documents the intended local settings."
+}
