@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cyntra Test Realtime Machine</title>
-  <meta name="description" content="Realtime browser machine for Cyntra's Test repo, LM Studio checks, bot-testing ticks, and local state logging." />
+  <meta name="description" content="Realtime browser machine for Cyntra's Test repo, backend daemon, LM Studio checks, bot-testing ticks, and project telemetry." />
   <link rel="stylesheet" href="realtime-machine.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
       <div>
         <p class="eyebrow">Cynntra/test · realtime control page</p>
         <h1>Cyntra Test Realtime Machine</h1>
-        <p class="lede">A browser-running machine for bot testing, LM Studio readiness checks, event ticks, state snapshots, and quick project telemetry.</p>
+        <p class="lede">A browser dashboard for bot testing, backend state, LM Studio readiness checks, daemon reports, event ticks, and quick project telemetry.</p>
       </div>
       <div class="status-card" aria-live="polite">
         <span id="machineLight" class="light idle"></span>
@@ -25,42 +25,30 @@
     </header>
 
     <section class="grid stats" aria-label="Machine telemetry">
-      <article>
-        <span>Tick</span>
-        <strong id="tickCount">0</strong>
-      </article>
-      <article>
-        <span>Uptime</span>
-        <strong id="uptime">00:00:00</strong>
-      </article>
-      <article>
-        <span>Heartbeat</span>
-        <strong id="heartbeat">silent</strong>
-      </article>
-      <article>
-        <span>LM Studio</span>
-        <strong id="lmStudioStatus">unknown</strong>
-      </article>
+      <article><span>Tick</span><strong id="tickCount">0</strong></article>
+      <article><span>Uptime</span><strong id="uptime">00:00:00</strong></article>
+      <article><span>Heartbeat</span><strong id="heartbeat">silent</strong></article>
+      <article><span>Backend</span><strong id="backendStatus">local</strong></article>
+      <article><span>LM Studio</span><strong id="lmStudioStatus">unknown</strong></article>
     </section>
 
     <section class="panel controls">
       <div>
         <h2>Machine Controls</h2>
-        <p>Runs while this page is open. State persists in this browser via localStorage.</p>
+        <p>Runs locally in the browser, and can read shared state from the FastAPI backend when available.</p>
       </div>
       <div class="button-row">
         <button id="startButton" type="button">Start</button>
         <button id="pauseButton" type="button">Pause</button>
         <button id="tickButton" type="button">Single Tick</button>
-        <button id="resetButton" type="button" class="danger">Reset</button>
+        <button id="resetButton" type="button" class="danger">Reset Local</button>
       </div>
     </section>
 
     <section class="grid two">
       <article class="panel">
         <h2>Runtime Settings</h2>
-        <label>
-          Tick interval
+        <label>Tick interval
           <select id="tickInterval">
             <option value="1000">1 second</option>
             <option value="5000">5 seconds</option>
@@ -68,8 +56,7 @@
             <option value="60000">1 minute</option>
           </select>
         </label>
-        <label>
-          Mode
+        <label>Mode
           <select id="machineMode">
             <option value="bot-testing">Bot testing</option>
             <option value="lmstudio-watch">LM Studio watch</option>
@@ -77,14 +64,26 @@
             <option value="manual">Manual</option>
           </select>
         </label>
-        <label>
-          LM Studio base URL
+        <label>LM Studio base URL
           <input id="lmStudioBase" type="url" value="http://localhost:1234" />
         </label>
         <button id="pingLmStudio" type="button">Ping LM Studio Models</button>
         <p class="note">Browser security may block localhost checks from GitHub Pages. Open this page locally if CORS or mixed-content guards bark.</p>
       </article>
 
+      <article class="panel">
+        <h2>Backend Feed</h2>
+        <label>Backend URL
+          <input id="backendUrl" type="url" value="http://127.0.0.1:8787" />
+        </label>
+        <div class="button-row">
+          <button id="syncBackend" type="button">Sync From Backend</button>
+        </div>
+        <p class="note">Read-only sync works without exposing write credentials in the static page.</p>
+      </article>
+    </section>
+
+    <section class="grid two">
       <article class="panel">
         <h2>Machine Snapshot</h2>
         <pre id="snapshot" class="snapshot" aria-live="polite"></pre>
@@ -93,9 +92,7 @@
           <button id="downloadSnapshot" type="button">Download JSON</button>
         </div>
       </article>
-    </section>
 
-    <section class="grid two">
       <article class="panel">
         <h2>Bot-Test Work Queue</h2>
         <ul id="workQueue" class="queue"></ul>
@@ -104,13 +101,23 @@
           <button id="completeQueueItem" type="button">Complete First</button>
         </div>
       </article>
+    </section>
+
+    <section class="grid two">
+      <article class="panel">
+        <h2>Backend Daemon Snapshot</h2>
+        <pre id="backendSnapshot" class="snapshot compact" aria-live="polite"></pre>
+      </article>
 
       <article class="panel">
         <h2>Quick Links</h2>
         <nav class="links" aria-label="Project links">
+          <a href="realtime-machine.md">Realtime Machine Guide</a>
           <a href="lmstudio-function-map.md">LM Studio Function Map</a>
           <a href="lmstudio-integration.md">LM Studio Integration Guide</a>
           <a href="lmstudio-cli-and-headless.md">CLI / Headless Notes</a>
+          <a href="../backend/README.md">Backend Guide</a>
+          <a href="../daemon/README.md">Daemon Guide</a>
           <a href="../mcp/README.md">MCP Setup</a>
           <a href="../README.md">Repo README</a>
         </nav>
@@ -121,7 +128,7 @@
       <div class="log-heading">
         <div>
           <h2>Realtime Event Log</h2>
-          <p>Latest machine events, pings, tasks, and state transitions.</p>
+          <p>Latest machine events, pings, tasks, backend syncs, and state transitions.</p>
         </div>
         <button id="clearLog" type="button">Clear Log</button>
       </div>
