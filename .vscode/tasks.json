@@ -1,0 +1,69 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Cyntra: Start Realtime Stack",
+      "type": "shell",
+      "command": "source .venv/bin/activate && python scripts/run_realtime_stack.py",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Cyntra: Start Infinite Keepalive",
+      "type": "shell",
+      "command": "source .venv/bin/activate && python scripts/keepalive_realtime_stack.py",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Cyntra: Backend Only",
+      "type": "shell",
+      "command": "source .venv/bin/activate && uvicorn backend.main:app --host 0.0.0.0 --port 8787 --reload",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Cyntra: Dashboard Only",
+      "type": "shell",
+      "command": "python -m http.server 8080 --bind 0.0.0.0 -d docs",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Cyntra: Smoke Test Imports",
+      "type": "shell",
+      "command": "source .venv/bin/activate && python - <<'PY'\nimport backend.main\nimport daemon.local_daemon\nprint('imports ok')\nPY",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Cyntra: LM Studio Model List",
+      "type": "shell",
+      "command": "source .venv/bin/activate && python scripts/lmstudio_list_models.py",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    }
+  ]
+}
